@@ -5,7 +5,7 @@ const baseError = require("../middleware/error.js");
 exports.getDataAmplop = (request, response) => {
     const id_user = request.id_user
 
-    let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id_item WHERE id_user = ? ORDER BY a.date_ngamplop"
+    let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id WHERE id_user = ? ORDER BY a.date_ngamplop"
     db.pool.query(query, [id_user], (error, results) => {
         if (error) {
             return baseError.handleError(error, response);
@@ -29,7 +29,7 @@ exports.getDataAmplop = (request, response) => {
 exports.getDetailAmplop = (request, response) => {
     const id = request.body.id
 
-    let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id_item WHERE a.id = ?"
+    let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id WHERE a.id = ?"
     db.pool.query(query, [id], (error, results) => {
         if (error) {
             return baseError.handleError(error, response);
