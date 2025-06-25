@@ -7,7 +7,6 @@ exports.getDataAmplop = (request, response) => {
 
     let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id_item WHERE id_user = ? ORDER BY a.date_ngamplop"
     db.pool.query(query, [id_user], (error, results) => {
-        baseError.handleError(error, response)
 
         if (results.length == 0) {
             return response.json({

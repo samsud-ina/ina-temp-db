@@ -26,7 +26,13 @@ exports.getDataDhuwit = (request, response) => {
 
     let query = "SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at FROM tr_dhuwit WHERE id_user = ? ORDER BY date_dhuwit ASC"
     db.pool.query(query, [id_user], (error, results) => {
-        baseError.handleError(error, response)
+    
+        if (results.length == 0) {
+            return response.json({
+                code: statusCode.empty_data,
+                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+            });
+        }
         
         response.json({
             code: statusCode.success,
