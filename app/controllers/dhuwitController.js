@@ -31,13 +31,6 @@ exports.getDataDhuwit = (request, response) => {
         if (error) {
             return baseError.handleError(error, response);
         }
-
-        if (!results || results.length === 0) {
-            return response.json({
-                code: statusCode.empty_data,
-                message: 'Data tidak ditemukan'
-            });
-        }
         
         return response.json({
             code: statusCode.success,
