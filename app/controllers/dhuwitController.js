@@ -35,7 +35,7 @@ exports.getDataDhuwit = (request, response) => {
         if (!results || results.length === 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: `Data dengan id user ${id_user} tidak ditemukan`
+                message: 'Data tidak ditemukan'
             });
         }
         
