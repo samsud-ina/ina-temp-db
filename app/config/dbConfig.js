@@ -9,7 +9,7 @@ const pool = mySql.createConnection({
   password: env.password,
   database: env.database,
   ssl: {
-    ca: fs.readFileSync('../ca.pem')
+    ca: fs.readFileSync(path.join(__dirname, '..', 'ca.pem'))
   }
 });
 
