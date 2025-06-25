@@ -6,7 +6,9 @@ exports.getVersion = (request, response) => {
     const reqVersionSplit = request.body.version.split(".");
 
     db.pool.query("SELECT * FROM m_version ORDER BY created_at DESC", (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         var updateApps = false
         var message = "Aplikasi sudah version terbaru"
@@ -25,9 +27,9 @@ exports.getVersion = (request, response) => {
         let  data = {
             new_version_apps: version,
             update_apps: updateApps,
-            force_update: results[0].force_update
+            force_update: results[0].is_force_update
         };
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: message,
             data: data

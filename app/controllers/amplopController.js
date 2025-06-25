@@ -7,15 +7,18 @@ exports.getDataAmplop = (request, response) => {
 
     let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id_item WHERE id_user = ? ORDER BY a.date_ngamplop"
     db.pool.query(query, [id_user], (error, results) => {
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
-        if (results.length == 0) {
+        if (!results || results.length === 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: `Data dengan id user ${id_user} tidak ditemukan`
             });
         }
 
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Berhasil mengambil data amplop",
             data: results
@@ -28,7 +31,9 @@ exports.getDetailAmplop = (request, response) => {
 
     let query = "SELECT a.id, a.id_user, a.id_item, b.name_item, a.name, a.origin, a.date_ngamplop, a.nominal, a.status, a.information, a.created_at, a.updated_at  FROM tr_amplop a LEFT JOIN m_item b ON a.id_item = b.id_item WHERE a.id = ?"
     db.pool.query(query, [id], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length == 0) {
             return response.json({
@@ -37,7 +42,7 @@ exports.getDetailAmplop = (request, response) => {
             });
         }
 
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Berhasil mengambil data detail amplop",
             data: results[0]
@@ -57,9 +62,11 @@ exports.createAmplop = (request, response) => {
 
     let query = "INSERT INTO tr_amplop (id_user, id_item, name, origin, date_ngamplop, nominal, status, information) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     db.pool.query(query, [id_user, id_item, name, origin, date_ngamplop, nominal, status, information], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Hore penambahan data amplop Berhasil",
             data: results[0]
@@ -79,9 +86,11 @@ exports.updateAmplop = (request, response) => {
 
     let query = "UPDATE tr_amplop SET id_item=?, name=?, origin=?, date_ngamplop=?, nominal=?, status=?, information=? WHERE id = ?"
     db.pool.query(query, [id_item, name, origin, date_ngamplop, nominal, status, information, id], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Upate data amplop Berhasil",
             data: results[0]
@@ -94,7 +103,9 @@ exports.deleteAmplop = (request, response) => {
 
     let querySelect = "SELECT * FROM tr_amplop WHERE id = ?"
     db.pool.query(querySelect, [id], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length == 0) {
             return response.json({
@@ -105,13 +116,14 @@ exports.deleteAmplop = (request, response) => {
 
         let queryDelete = "DELETE FROM tr_amplop WHERE id = ?"
         db.pool.query(queryDelete, [id], (error, results) => {
-            baseError.handleError(error, response)
+            if (error) {
+                return baseError.handleError(error, response);
+            }
             
-            response.json({
+            return response.json({
                 code: statusCode.success,
                 message: "Berhasil menghapus data amplop"
             });
         })
     })
 }
-

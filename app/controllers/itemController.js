@@ -4,9 +4,11 @@ const baseError = require("../middleware/error.js");
 
 exports.getItems = (request, response) => {
     db.pool.query("SELECT * FROM m_item", (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Berhasil mengambil data semua item",
             data: results
@@ -19,7 +21,9 @@ exports.addItem = (request, response) => {
     
     let querySelect = "SELECT * FROM m_item WHERE LOWER(name_item) = ?"
     db.pool.query(querySelect, [name.toLowerCase()], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length != 0) {
             return response.json({
@@ -30,9 +34,11 @@ exports.addItem = (request, response) => {
 
         let queryInsert = "INSERT INTO m_item (name_item) VALUES (?)"
         db.pool.query(queryInsert, [name], (error, results) => {
-            baseError.handleError(error, response)
+            if (error) {
+                return baseError.handleError(error, response);
+            }
             
-            response.json({
+            return response.json({
                 code: statusCode.success,
                 message: "Penambahan item Berhasil",
                 data: results[0]
@@ -46,7 +52,9 @@ exports.deleteItem = (request, response) => {
 
     let querySelect = "SELECT * FROM m_item WHERE name_item = ?"
     db.pool.query(querySelect, [name], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length == 0) {
              return response.json({
@@ -57,9 +65,11 @@ exports.deleteItem = (request, response) => {
 
         let queryDelete = "DELETE FROM m_item WHERE name_item = ?"
         db.pool.query(queryDelete, [name], (error, results) => {
-            baseError.handleError(error, response)
+            if (error) {
+                return baseError.handleError(error, response);
+            }
             
-            response.json({
+            return response.json({
                 code: statusCode.success,
                 message: "Berhasil menghapus item dengan nama : " + name
             });

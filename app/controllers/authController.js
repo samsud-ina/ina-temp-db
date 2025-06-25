@@ -50,7 +50,9 @@ exports.register = (request, response) => {
 
     let querySelect = "SELECT * FROM user_apps WHERE email = ?"
     db.pool.query(querySelect, [email], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length != 0) {
             return response.json({
@@ -63,9 +65,11 @@ exports.register = (request, response) => {
 
         let queryInsert = "INSERT INTO user_apps (name, email, password) VALUES (?, ?, ?)"
         db.pool.query(queryInsert, [name, email, bcrypPassword], (error, results) => {
-            baseError.handleError(error, response)
+            if (error) {
+                return baseError.handleError(error, response);
+            }
             
-            response.json({
+            return response.json({
                 code: statusCode.success,
                 message: "Pendaftaran Berhasil",
                 data: results

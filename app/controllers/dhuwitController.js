@@ -11,9 +11,11 @@ exports.createDhuwit = (request, response) => {
 
     let query = "INSERT INTO tr_dhuwit (id_user, date_dhuwit, nominal, status, information) VALUES (?, ?, ?, ?, ?)"
     db.pool.query(query, [id_user, date_dhuwit, nominal, status, information], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Hore penambahan data dhuwit Berhasil",
             data: results[0]
@@ -26,15 +28,18 @@ exports.getDataDhuwit = (request, response) => {
 
     let query = "SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at FROM tr_dhuwit WHERE id_user = ? ORDER BY date_dhuwit ASC"
     db.pool.query(query, [id_user], (error, results) => {
-    
-        if (results.length == 0) {
+        if (error) {
+            return baseError.handleError(error, response);
+        }
+
+        if (!results || results.length === 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: `Data dengan id user ${id_user} tidak ditemukan`
             });
         }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Berhasil mengambil data dhuwit",
             data: results
@@ -51,9 +56,11 @@ exports.updateDhuwit = (request, response) => {
 
     let query = "UPDATE tr_dhuwit SET date_dhuwit=?, nominal=?, status=?, information=? WHERE id = ? ORDER BY date_dhuwit"
     db.pool.query(query, [date_dhuwit, nominal, status, information, id], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
         
-        response.json({
+        return response.json({
             code: statusCode.success,
             message: "Upate data dhuwit Berhasil",
             data: results[0]
@@ -66,7 +73,9 @@ exports.deleteDhuwit = (request, response) => {
 
     let querySelect = "SELECT * FROM tr_dhuwit WHERE id = ?"
     db.pool.query(querySelect, [id], (error, results) => {
-        baseError.handleError(error, response)
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length == 0) {
             return response.json({
@@ -77,9 +86,11 @@ exports.deleteDhuwit = (request, response) => {
 
         let queryDelete = "DELETE FROM tr_dhuwit WHERE id = ?"
         db.pool.query(queryDelete, [id], (error, results) => {
-            baseError.handleError(error, response)
+            if (error) {
+                return baseError.handleError(error, response);
+            }
             
-            response.json({
+            return response.json({
                 code: statusCode.success,
                 message: "Berhasil menghapus data dhuwit"
             });
