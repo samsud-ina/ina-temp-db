@@ -1,7 +1,6 @@
 const env = require('./env.js');
 const fs = require('fs');
 const mySql = require('mysql2');
-const path = require('path');
 
 const pool = mySql.createConnection({
   host: env.host,
@@ -10,7 +9,7 @@ const pool = mySql.createConnection({
   password: env.password,
   database: env.database,
   ssl: {
-    ca: fs.readFileSync(path.join(__dirname, 'ca.pem'))
+    ca: env.caCert
   }
 });
 
