@@ -103,13 +103,13 @@ exports.getTotalCountAmplop = (request, response) => {
         if (results.length == 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: "Data total count amplop tidak ditemukan"
             });
         }
         
         return response.json({
             code: statusCode.success,
-            message: "Total count user id : "+ id_user +" ditemukan",
+            message: "Total count amplop ditemukan",
             data: results
         });
     })
@@ -127,13 +127,13 @@ exports.getTotalCountDhuwit = (request, response) => {
         if (results.length == 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: "Data total count dhuwit tidak ditemukan"
             });
         }
         
         return response.json({
             code: statusCode.success,
-            message: "Total count user id : "+ id_user +" ditemukan",
+            message: "Total count dhuwit ditemukan",
             data: results
         });
     })
@@ -153,13 +153,13 @@ exports.getTotalSpendDhuwitMonth = (request, response) => {
         if (results.length == 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: "Data total dhuwit bulan ini tidak ditemukan"
             });
         }
         
         return response.json({
             code: statusCode.success,
-            message: "Total bulan ini dengan user id : "+ id_user +" ditemukan",
+            message: "Total dhuwit bulan ini ditemukan",
             data: results[0]
         });
     })
@@ -181,13 +181,13 @@ exports.getTotalSpendDhuwitDay = (request, response) => {
         if (results.length == 0) {
             return response.json({
                 code: statusCode.empty_data,
-                message: "Data dengan id user "+ id_user +" tidak ditemukan"
+                message: "Data total dhuwit hari ini tidak ditemukan"
             });
         }
         
         return response.json({
             code: statusCode.success,
-            message: "Total hari ini dengan user id : "+ id_user +" ditemukan",
+            message: "Total dhuwit hari ini ditemukan",
             data: results[0]
         });
     })
