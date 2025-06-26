@@ -79,7 +79,8 @@ exports.getDashboardSummary = (request, response) => {
             if (name === 'total_count_amplop' || name === 'total_count_dhuwit') {
                 result[name] = (results.length === 0) ? {} : mapCountResultByStatus(results);
             } else {
-                result[name] = results[0] && results[0][name] ? results[0][name] : 0;
+                const value = results[0] && results[0][name] ? Number(results[0][name]) : 0;
+                result[name] = isNaN(value) ? 0 : value;
             }
 
             completed++;

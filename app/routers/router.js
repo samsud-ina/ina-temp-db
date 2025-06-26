@@ -12,17 +12,12 @@ router.post('/api/register', authController.register);
  
 const user = require('../controllers/userController.js');
 router.get('/api/user/all', auth.verifyToken, user.getUsers);
-router.post('/api/user/detail', auth.verifyToken, user.getUserById);
-router.post('/api/user/delete', auth.verifyToken, user.deleteUser);
-router.post('/api/user/updateprofile', auth.verifyToken, user.updateProfile);
-router.post('/api/user/totalcountamplop', auth.verifyToken, user.getTotalCountAmplop);
-router.post('/api/user/totalcountdhuwit', auth.verifyToken, user.getTotalCountDhuwit);
-router.post('/api/user/totalmonthdhuwit', auth.verifyToken, user.getTotalSpendDhuwitMonth);
-router.post('/api/user/totaldaydhuwit', auth.verifyToken, user.getTotalSpendDhuwitDay);
+router.get('/api/user/detail', auth.verifyToken, user.getUserById);
+router.get('/api/user/delete', auth.verifyToken, user.deleteUser);
+router.post('/api/user/update-profile', auth.verifyToken, user.updateProfile);
 
 const dashboard = require('../controllers/dashboardController.js');
-router.post('/api/dashboard', auth.verifyToken, dashboard.getDashboardSummary);
-
+router.get('/api/dashboard', auth.verifyToken, dashboard.getDashboardSummary);
 
 const item = require('../controllers/itemController.js');
 router.get('/api/item/all', auth.verifyToken, item.getItems);
