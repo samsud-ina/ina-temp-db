@@ -20,6 +20,10 @@ router.post('/api/user/totalcountdhuwit', auth.verifyToken, user.getTotalCountDh
 router.post('/api/user/totalmonthdhuwit', auth.verifyToken, user.getTotalSpendDhuwitMonth);
 router.post('/api/user/totaldaydhuwit', auth.verifyToken, user.getTotalSpendDhuwitDay);
 
+const dashboard = require('../controllers/dashboardController.js');
+router.post('/api/dashboard', auth.verifyToken, dashboard.getDashboardSummary);
+
+
 const item = require('../controllers/itemController.js');
 router.get('/api/item/all', auth.verifyToken, item.getItems);
 router.post('/api/item/add', item.addItem);
