@@ -1,11 +1,15 @@
 const express = require('express');
 const serverless = require('serverless-http');
-const app = express();
-const path = require("path");
+const cors = require('cors');
 
-let bodyParser = require('body-parser');
-app.use(bodyParser.json());
+const app = express();
+
+app.use(cors());
+
+app.use(express.json());
 
 let routerApps = require('../app/routers/router.js');
-app.use("/.netlify/functions/app", routerApps);
+
+app.use('/.netlify/functions/app', routerApps);
+
 module.exports.handler = serverless(app);
