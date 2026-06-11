@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const parseDhuwitText = async (text) => {
     const response = await axios.post(
-        `https://api.z.ai/api/paas/v4/chat/completions`,
+        `https://api.z.ai/api/coding/paas/v4`,
         {
             model: "glm-5.1",
             messages: [
