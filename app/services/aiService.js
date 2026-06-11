@@ -1,5 +1,8 @@
 const axios = require("axios");
 
+const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Jakarta",
+});
 const parseDhuwitText = async (text) => {
     const response = await axios.post(
         "https://api.groq.com/openai/v1/chat/completions",
@@ -11,67 +14,93 @@ const parseDhuwitText = async (text) => {
                     content: `
 You are a financial transaction parser.
 
-Your task is to convert a user's natural language into a VALID JSON object.
+Your ONLY task is to convert a user's natural language transaction into ONE valid JSON object.
 
-Current date: {{CURRENT_DATE}}
+Current date in Indonesia (Asia/Jakarta): ${today}
 
-RULES:
+IMPORTANT:
+- Treat the date above as the absolute truth.
+- All relative dates MUST be calculated from that date.
+- Never invent another current date.
+- Never assume another year.
 
-1. status
+DATE RULES:
+- "hari ini" = current date
+- "kemarin" = current date - 1 day
+- "besok" = current date + 1 day
+- "lusa" = current date + 2 days
+- "X hari lalu" = current date - X days
+- "X hari lagi" = current date + X days
+
+If no date is mentioned:
+- Use the current date above.
+
+STATUS RULES:
 - 1 = income
 - 2 = expense
 
-2. nominal
+If status cannot be determined:
+- Default to 2 (expense).
+
+NOMINAL RULES:
 - Must be an integer.
 - Never include currency symbols.
 - Never include dots or commas.
-- Convert:
+- Convert naturally:
   - 10rb -> 10000
+  - 10 rb -> 10000
   - 10 ribu -> 10000
+  - 100 ribu -> 100000
   - 1 juta -> 1000000
   - 1.5 juta -> 1500000
   - 1,5 juta -> 1500000
+  - 2 juta 500 ribu -> 2500000
 
-3. information
-- Remove date expressions.
-- Remove nominal values.
-- Keep the action if meaningful.
-- Examples:
-  "saya beli ayam 10000" -> "beli ayam"
-  "bayar listrik 300 ribu" -> "bayar listrik"
-  "gaji bulanan 5 juta" -> "gaji bulanan"
+INFORMATION RULES:
+- Remove all date expressions.
+- Remove all nominal values.
+- Keep meaningful action words.
+- Keep the description natural.
+- Do NOT leave numbers in the information field.
 
-4. date_dhuwit
-Must use yyyy-MM-dd format.
+Examples:
+"saya beli ayam 10000"
+-> "beli ayam"
 
-Relative dates:
-- hari ini = current date
-- kemarin = current date - 1 day
-- besok = current date + 1 day
-- lusa = current date + 2 days
-- X hari lalu = current date - X days
-- X hari lagi = current date + X days
+"kemarin bayar listrik 300 ribu"
+-> "bayar listrik"
 
-If no date is mentioned:
-use current date.
+"gaji bulanan 5 juta"
+-> "gaji bulanan"
 
-5. If status cannot be determined:
-default to expense (2).
+"bonus kantor 1 juta"
+-> "bonus kantor"
 
-OUTPUT:
+OUTPUT SCHEMA:
 
 {
   "nominal": integer,
-  "status": 1|2,
+  "status": 1,
   "information": "string",
   "date_dhuwit": "yyyy-MM-dd"
 }
-Return ONLY valid JSON.
 
-Do NOT wrap in markdown.
-Do NOT explain.
-Do NOT output any extra text.
-The response must be directly parseable by JSON.parse().
+or
+
+{
+  "nominal": integer,
+  "status": 2,
+  "information": "string",
+  "date_dhuwit": "yyyy-MM-dd"
+}
+
+OUTPUT RULES:
+- Return ONLY valid JSON.
+- Do NOT return markdown.
+- Do NOT include explanations.
+- Do NOT include comments.
+- Do NOT include extra text.
+- The response must be directly parseable by JSON.parse().
 `,
                 },
                 {
