@@ -22,75 +22,128 @@ function mapCountResultByStatus(rows) {
     return result;
 }
 
-// API untuk semua ringkasan dashboard
-exports.getDashboardSummary = (request, response) => {
-    const id_user = request.id_user;
-    const today = new Date();
-    const month = today.getMonth() + 1;
-    const date = request.body.date || today.toISOString().slice(0, 10); // format: "YYYY-MM-DD"
+exports.getDashboardSummary = async (request, response) => {
+    try {
+        const id_user = request.id_user;
 
-    const from = `${date} 00:00:00`;
-    const to = `${date} 23:59:59`;
+        const today = new Date();
+        const date = request.body.date || today.toISOString().slice(0, 10);
 
-    const queries = [
-        {
-            name: 'total_count_amplop',
-            query: `SELECT status, COUNT(status) AS count, SUM(nominal) AS total 
-                    FROM tr_amplop 
-                    WHERE id_user = ? 
-                    GROUP BY status 
-                    ORDER BY status ASC`,
-            params: [id_user]
-        },
-        {
-            name: 'total_count_dhuwit',
-            query: `SELECT status, COUNT(status) AS count, SUM(nominal) AS total 
-                    FROM tr_dhuwit 
-                    WHERE id_user = ? 
-                    GROUP BY status 
-                    ORDER BY status ASC`,
-            params: [id_user]
-        },
-        {
-            name: 'total_spend_month',
-            query: `SELECT SUM(nominal) AS total_spend_month 
-                    FROM tr_dhuwit 
-                    WHERE MONTH(date_dhuwit) = ? AND id_user = ? AND status = 2`,
-            params: [month, id_user]
-        },
-        {
-            name: 'total_spend_day',
-            query: `SELECT SUM(nominal) AS total_spend_day 
-                    FROM tr_dhuwit 
-                    WHERE date_dhuwit BETWEEN ? AND ? AND id_user = ? AND status = 2`,
-            params: [from, to, id_user]
+        // Day range
+        const startDay = `${date} 00:00:00`;
+
+        const nextDayObj = new Date(date);
+        nextDayObj.setDate(nextDayObj.getDate() + 1);
+
+        const endDay = `${nextDayObj.toISOString().slice(0, 10)} 00:00:00`;
+
+        // Month range
+        const selectedDate = new Date(date);
+
+        const startMonth = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth(),
+            1
+        );
+
+        const nextMonth = new Date(
+            selectedDate.getFullYear(),
+            selectedDate.getMonth() + 1,
+            1
+        );
+
+        const startMonthStr = `${startMonth.toISOString().slice(0, 10)} 00:00:00`;
+        const nextMonthStr = `${nextMonth.toISOString().slice(0, 10)} 00:00:00`;
+
+        const amplopQuery = `
+            SELECT
+                status,
+                COUNT(*) AS count,
+                COALESCE(SUM(nominal), 0) AS total
+            FROM tr_amplop
+            WHERE id_user = ?
+            GROUP BY status
+            ORDER BY status ASC
+        `;
+
+        const dhuwitQuery = `
+            SELECT
+                status,
+                COUNT(*) AS count,
+                COALESCE(SUM(nominal), 0) AS total,
+
+                SUM(
+                    CASE
+                        WHEN status = 2
+                        AND date_dhuwit >= ?
+                        AND date_dhuwit < ?
+                        THEN nominal
+                        ELSE 0
+                    END
+                ) AS total_spend_day,
+
+                SUM(
+                    CASE
+                        WHEN status = 2
+                        AND date_dhuwit >= ?
+                        AND date_dhuwit < ?
+                        THEN nominal
+                        ELSE 0
+                    END
+                ) AS total_spend_month
+
+            FROM tr_dhuwit
+            WHERE id_user = ?
+            GROUP BY status
+            ORDER BY status ASC
+        `;
+
+        const [
+            [amplopResults],
+            [dhuwitResults]
+        ] = await Promise.all([
+            db.pool.promise().query(amplopQuery, [id_user]),
+            db.pool.promise().query(dhuwitQuery, [
+                startDay,
+                endDay,
+                startMonthStr,
+                nextMonthStr,
+                id_user
+            ])
+        ]);
+
+        const result = {
+            total_count_amplop:
+                amplopResults.length === 0
+                    ? {}
+                    : mapCountResultByStatus(amplopResults),
+
+            total_count_dhuwit:
+                dhuwitResults.length === 0
+                    ? {}
+                    : mapCountResultByStatus(dhuwitResults),
+
+            total_spend_day: 0,
+            total_spend_month: 0
+        };
+
+        if (dhuwitResults.length > 0) {
+            result.total_spend_day = Number(
+                dhuwitResults[0].total_spend_day || 0
+            );
+
+            result.total_spend_month = Number(
+                dhuwitResults[0].total_spend_month || 0
+            );
         }
-    ];
 
-    const result = {};
-    let completed = 0;
-
-    queries.forEach(({ name, query, params }) => {
-        db.pool.query(query, params, (error, results) => {
-            if (error) {
-                return baseError.handleError(error, response);
-            }
-
-            if (name === 'total_count_amplop' || name === 'total_count_dhuwit') {
-                result[name] = (results.length === 0) ? {} : mapCountResultByStatus(results);
-            } else {
-                const value = results[0] && results[0][name] ? Number(results[0][name]) : 0;
-                result[name] = isNaN(value) ? 0 : value;
-            }
-
-            completed++;
-            if (completed === queries.length) {
-                return response.json({
-                    code: statusCode.success,
-                    message: "Dashboard summary ditemukan",
-                    data: result
-                });
-            }
+        return response.json({
+            code: statusCode.success,
+            message: "Dashboard summary ditemukan",
+            data: result
         });
-    });
+
+    } catch (error) {
+        return baseError.handleError(error, response);
+    }
 };
