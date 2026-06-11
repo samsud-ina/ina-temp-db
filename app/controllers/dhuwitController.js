@@ -14,7 +14,7 @@ exports.createDhuwit = (request, response) => {
         if (error) {
             return baseError.handleError(error, response);
         }
-        
+
         return response.json({
             code: statusCode.success,
             message: "Hore penambahan data dhuwit Berhasil",
@@ -24,21 +24,35 @@ exports.createDhuwit = (request, response) => {
 }
 
 exports.getDataDhuwit = (request, response) => {
-    const id_user = request.id_user
+    const id_user = request.id_user;
+    const limit = request.body.limit;
 
-    let query = "SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at FROM tr_dhuwit WHERE id_user = ? ORDER BY date_dhuwit ASC"
-    db.pool.query(query, [id_user], (error, results) => {
+    let query = `
+        SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at
+        FROM tr_dhuwit
+        WHERE id_user = ?
+        ORDER BY date_dhuwit ASC
+    `;
+
+    let params = [id_user];
+
+    if (limit !== undefined && limit !== null && limit !== "") {
+        query += " LIMIT ?";
+        params.push(parseInt(limit, 10));
+    }
+
+    db.pool.query(query, params, (error, results) => {
         if (error) {
             return baseError.handleError(error, response);
         }
-        
+
         return response.json({
             code: statusCode.success,
             message: "Berhasil mengambil data dhuwit",
             data: results
         });
-    })
-}
+    });
+};
 
 exports.updateDhuwit = (request, response) => {
     const id = request.body.id
@@ -52,7 +66,7 @@ exports.updateDhuwit = (request, response) => {
         if (error) {
             return baseError.handleError(error, response);
         }
-        
+
         return response.json({
             code: statusCode.success,
             message: "Upate data dhuwit Berhasil",
@@ -82,7 +96,7 @@ exports.deleteDhuwit = (request, response) => {
             if (error) {
                 return baseError.handleError(error, response);
             }
-            
+
             return response.json({
                 code: statusCode.success,
                 message: "Berhasil menghapus data dhuwit"
