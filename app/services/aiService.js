@@ -11,32 +11,67 @@ const parseDhuwitText = async (text) => {
                     content: `
 You are a financial transaction parser.
 
-Convert user text into STRICT JSON only.
+Your task is to convert a user's natural language into a VALID JSON object.
 
-IMPORTANT RULES:
-- status:
-  1 = income
-  2 = expense
-- nominal must be integer (no currency text, no dots, no commas)
-- information must be cleaned (remove numbers and date words)
-- date_dhuwit must be ISO format (yyyy-MM-dd)
+Current date: {{CURRENT_DATE}}
 
-DATE RULES:
-- "hari ini" → today
-- "kemarin" → yesterday
-- "lusa" → tomorrow
-- "2 hari lalu" → subtract 2 days
-- if no date mentioned → today
+RULES:
 
-OUTPUT FORMAT (STRICT):
+1. status
+- 1 = income
+- 2 = expense
+
+2. nominal
+- Must be an integer.
+- Never include currency symbols.
+- Never include dots or commas.
+- Convert:
+  - 10rb -> 10000
+  - 10 ribu -> 10000
+  - 1 juta -> 1000000
+  - 1.5 juta -> 1500000
+  - 1,5 juta -> 1500000
+
+3. information
+- Remove date expressions.
+- Remove nominal values.
+- Keep the action if meaningful.
+- Examples:
+  "saya beli ayam 10000" -> "beli ayam"
+  "bayar listrik 300 ribu" -> "bayar listrik"
+  "gaji bulanan 5 juta" -> "gaji bulanan"
+
+4. date_dhuwit
+Must use yyyy-MM-dd format.
+
+Relative dates:
+- hari ini = current date
+- kemarin = current date - 1 day
+- besok = current date + 1 day
+- lusa = current date + 2 days
+- X hari lalu = current date - X days
+- X hari lagi = current date + X days
+
+If no date is mentioned:
+use current date.
+
+5. If status cannot be determined:
+default to expense (2).
+
+OUTPUT:
+
 {
-  "nominal": number,
-  "status": number,
-  "information": string,
+  "nominal": integer,
+  "status": 1|2,
+  "information": "string",
   "date_dhuwit": "yyyy-MM-dd"
 }
+Return ONLY valid JSON.
 
-Return ONLY JSON. No explanation. No markdown.
+Do NOT wrap in markdown.
+Do NOT explain.
+Do NOT output any extra text.
+The response must be directly parseable by JSON.parse().
 `,
                 },
                 {
