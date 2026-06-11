@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const auth = require("../middleware/auth.js");
-// const upload = require("../middleware/upload.js");
 
 const version = require('../controllers/versionController.js');
 router.post('/api/version/apps', version.getVersion);
@@ -9,7 +8,7 @@ router.post('/api/version/apps', version.getVersion);
 const authController = require('../controllers/authController.js');
 router.post('/api/login', authController.login);
 router.post('/api/register', authController.register);
- 
+
 const user = require('../controllers/userController.js');
 router.get('/api/user/all', auth.verifyToken, user.getUsers);
 router.get('/api/user/detail', auth.verifyToken, user.getUserById);
@@ -36,6 +35,12 @@ router.post('/api/dhuwit/list', auth.verifyToken, dhuwit.getDataDhuwit);
 router.post('/api/dhuwit/create', auth.verifyToken, dhuwit.createDhuwit);
 router.post('/api/dhuwit/delete', auth.verifyToken, dhuwit.deleteDhuwit);
 router.post('/api/dhuwit/update', auth.verifyToken, dhuwit.updateDhuwit);
+
+router.post(
+    '/api/dhuwit/create-from-text',
+    auth.verifyToken,
+    dhuwit.createFromText
+);
 
 // const uploadController = require("../controllers/uploadController.js");
 // router.post("/api/upload", auth.verifyToken, upload.single("file"), uploadController.upload);

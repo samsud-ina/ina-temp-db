@@ -1,6 +1,33 @@
 const db = require('../config/dbConfig.js');
 const statusCode = require('../config/statusCode.js');
 const baseError = require("../middleware/error.js");
+const { parseDhuwitText } = require('../services/aiService');
+
+exports.createFromText = async (req, res) => {
+    try {
+        const { text } = req.body;
+
+        if (!text) {
+            return res.status(400).json({
+                message: "text is required"
+            });
+        }
+
+        const parsed = await parseDhuwitText(text);
+
+        return res.json({
+            code: 200,
+            message: "AI parsing success",
+            data: parsed
+        });
+
+    } catch (err) {
+        return res.status(500).json({
+            message: "AI failed",
+            error: err.message
+        });
+    }
+};
 
 exports.createDhuwit = (request, response) => {
     const id_user = request.id_user
