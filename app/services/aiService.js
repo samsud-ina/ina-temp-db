@@ -2,7 +2,7 @@ const axios = require("axios");
 
 const parseDhuwitText = async (text) => {
     const response = await axios.post(
-        `${process.env.ZAI_BASE_URL}/chat/completions`,
+        `https://api.z.ai/api/paas/v4/chat/completions`,
         {
             model: "glm-5.1",
             messages: [
@@ -48,7 +48,7 @@ Return ONLY JSON. No explanation. No markdown.
         },
         {
             headers: {
-                Authorization: `Bearer ${process.env.ZAI_API_KEY}`,
+                Authorization: `Bearer e3e044d097834c5caf821104065cfb1e.478lMzf7HW9vvNB1`,
                 "Content-Type": "application/json"
             }
         }
