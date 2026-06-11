@@ -17,18 +17,26 @@ IMPORTANT RULES:
 - status:
   1 = income
   2 = expense
-- nominal must be integer
-- information must be cleaned
+- nominal must be integer (no currency text, no dots, no commas)
+- information must be cleaned (remove numbers and date words)
 - date_dhuwit must be ISO format (yyyy-MM-dd)
 
 DATE RULES:
-- "hari ini" -> today
-- "kemarin" -> yesterday
-- "besok" -> tomorrow
-- "2 hari lalu" -> subtract 2 days
-- if no date mentioned -> today
+- "hari ini" → today
+- "kemarin" → yesterday
+- "lusa" → tomorrow
+- "2 hari lalu" → subtract 2 days
+- if no date mentioned → today
 
-Return ONLY valid JSON.
+OUTPUT FORMAT (STRICT):
+{
+  "nominal": number,
+  "status": number,
+  "information": string,
+  "date_dhuwit": "yyyy-MM-dd"
+}
+
+Return ONLY JSON. No explanation. No markdown.
 `,
                 },
                 {
