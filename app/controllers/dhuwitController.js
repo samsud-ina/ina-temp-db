@@ -16,13 +16,14 @@ exports.createFromText = async (req, res) => {
         const parsed = await parseDhuwitText(text);
 
         return res.json({
-            code: 200,
+            code: statusCode.success,
             message: "AI parsing success",
             data: parsed
         });
 
     } catch (err) {
-        return res.status(500).json({
+        return res.status(statusCode.bad_request).json({
+            code: statusCode.bad_request,
             message: "AI failed",
             error: err.message
         });
