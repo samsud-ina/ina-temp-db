@@ -127,13 +127,17 @@ exports.getDashboardSummary = async (request, response) => {
             total_spend_month: 0
         };
 
-        if (dhuwitResults.length > 0) {
+        const spendData = dhuwitResults.find(
+            item => Number(item.status) === 2
+        );
+
+        if (spendData) {
             result.total_spend_day = Number(
-                dhuwitResults[0].total_spend_day || 0
+                spendData.total_spend_day || 0
             );
 
             result.total_spend_month = Number(
-                dhuwitResults[0].total_spend_month || 0
+                spendData.total_spend_month || 0
             );
         }
 
