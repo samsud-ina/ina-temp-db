@@ -78,21 +78,16 @@ exports.register = (request, response) => {
     })
 }
 
-exports.resetPassword = (request, response) => {
-    const email = request.body.email;
-    const newPassword = request.body.password;
+exports.checkAccount = (request, response) => {
+    const { email } = request.body;
 
-    if (!email || !newPassword) {
-        return response.json({
-            code: statusCode.invalid_request,
-            message: "Email dan password wajib diisi"
-        });
-    }
+    const query = `
+        SELECT id, nama, email
+        FROM user_apps
+        WHERE email = ?
+    `;
 
-    // Cek apakah user ada
-    const checkQuery = "SELECT id FROM user_apps WHERE email = ?";
-
-    db.pool.query(checkQuery, [email], (error, results) => {
+    db.pool.query(query, [email], (error, results) => {
         baseError.handleError(error, response);
 
         if (results.length === 0) {
@@ -102,22 +97,38 @@ exports.resetPassword = (request, response) => {
             });
         }
 
-        // Hash password baru
-        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+        return response.json({
+            code: statusCode.success,
+            message: "Akun ditemukan",
+            data: results[0]
+        });
+    });
+};
 
-        const updateQuery = `
-            UPDATE user_apps
-            SET password = ?
-            WHERE email = ?
-        `;
+exports.resetPassword = (request, response) => {
+    const { email, password } = request.body;
 
-        db.pool.query(updateQuery, [hashedPassword, email], (error) => {
-            baseError.handleError(error, response);
+    const hashedPassword = bcrypt.hashSync(password, 8);
 
+    const query = `
+        UPDATE user_apps
+        SET password = ?
+        WHERE email = ?
+    `;
+
+    db.pool.query(query, [hashedPassword, email], (error, result) => {
+        baseError.handleError(error, response);
+
+        if (result.affectedRows === 0) {
             return response.json({
-                code: statusCode.success,
-                message: "Password berhasil diperbarui"
+                code: statusCode.empty_data,
+                message: "Akun tidak ditemukan"
             });
+        }
+
+        return response.json({
+            code: statusCode.success,
+            message: "Password berhasil diperbarui"
         });
     });
 };

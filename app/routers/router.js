@@ -8,6 +8,7 @@ router.post('/api/version/apps', version.getVersion);
 const authController = require('../controllers/authController.js');
 router.post('/api/login', authController.login);
 router.post('/api/register', authController.register);
+router.post('/api/check-account', authController.checkAccount);
 router.post('/api/reset-password', authController.resetPassword);
 
 const user = require('../controllers/userController.js');
