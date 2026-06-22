@@ -60,7 +60,7 @@ exports.register = (request, response) => {
                 message: "Email sudah pernah digunakan"
             });
         }
-        
+
         let bcrypPassword = bcrypt.hashSync(password, 8)
 
         let queryInsert = "INSERT INTO user_apps (name, email, password) VALUES (?, ?, ?)"
@@ -68,7 +68,7 @@ exports.register = (request, response) => {
             if (error) {
                 return baseError.handleError(error, response);
             }
-            
+
             return response.json({
                 code: statusCode.success,
                 message: "Pendaftaran Berhasil",
@@ -77,3 +77,47 @@ exports.register = (request, response) => {
         })
     })
 }
+
+exports.resetPassword = (request, response) => {
+    const email = request.body.email;
+    const newPassword = request.body.password;
+
+    if (!email || !newPassword) {
+        return response.json({
+            code: statusCode.invalid_request,
+            message: "Email dan password wajib diisi"
+        });
+    }
+
+    // Cek apakah user ada
+    const checkQuery = "SELECT id FROM user_apps WHERE email = ?";
+
+    db.pool.query(checkQuery, [email], (error, results) => {
+        baseError.handleError(error, response);
+
+        if (results.length === 0) {
+            return response.json({
+                code: statusCode.empty_data,
+                message: "Akun tidak ditemukan"
+            });
+        }
+
+        // Hash password baru
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+        const updateQuery = `
+            UPDATE user_apps
+            SET password = ?
+            WHERE email = ?
+        `;
+
+        db.pool.query(updateQuery, [hashedPassword, email], (error) => {
+            baseError.handleError(error, response);
+
+            return response.json({
+                code: statusCode.success,
+                message: "Password berhasil diperbarui"
+            });
+        });
+    });
+};
