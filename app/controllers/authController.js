@@ -82,7 +82,7 @@ exports.checkAccount = (request, response) => {
     const { email } = request.body;
 
     const query = `
-        SELECT id, nama, email
+        SELECT id, name, email
         FROM user_apps
         WHERE email = ?
     `;
