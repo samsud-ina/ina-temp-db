@@ -141,6 +141,20 @@ exports.getDashboardSummary = async (request, response) => {
             );
         }
 
+        const incomeData = dhuwitResults.find(
+            item => Number(item.status) === 1
+        );
+
+        if (incomeData) {
+            result.total_income_day = Number(
+                incomeData.total_income_day || 0
+            );
+
+            result.total_income_month = Number(
+                incomeData.total_income_month || 0
+            );
+        }
+
         return response.json({
             code: statusCode.success,
             message: "Dashboard summary ditemukan",

@@ -59,7 +59,7 @@ exports.getDataDhuwit = (request, response) => {
         SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at
         FROM tr_dhuwit
         WHERE id_user = ?
-        ORDER BY date_dhuwit ASC
+        ORDER BY date_dhuwit DESC
     `;
 
     let params = [id_user];
