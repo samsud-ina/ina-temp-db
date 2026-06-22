@@ -53,16 +53,43 @@ exports.createDhuwit = (request, response) => {
 
 exports.getDataDhuwit = (request, response) => {
     const id_user = request.id_user;
-    const limit = request.body.limit;
+    const { month, year, limit } = request.body;
 
     let query = `
-        SELECT id, id_user, date_dhuwit, nominal, status, information, created_at, updated_at
+        SELECT
+            id,
+            id_user,
+            date_dhuwit,
+            nominal,
+            status,
+            information,
+            created_at,
+            updated_at
         FROM tr_dhuwit
         WHERE id_user = ?
-        ORDER BY date_dhuwit DESC
     `;
 
-    let params = [id_user];
+    const params = [id_user];
+
+    // Filter bulan & tahun jika dikirim
+    if (month && year) {
+        const startMonth = new Date(year, month - 1, 1);
+        const nextMonth = new Date(year, month, 1);
+
+        const startMonthStr = `${startMonth.toISOString().slice(0, 10)} 00:00:00`;
+        const nextMonthStr = `${nextMonth.toISOString().slice(0, 10)} 00:00:00`;
+
+        query += `
+            AND date_dhuwit >= ?
+            AND date_dhuwit < ?
+        `;
+
+        params.push(startMonthStr, nextMonthStr);
+    }
+
+    query += `
+        ORDER BY date_dhuwit DESC
+    `;
 
     if (limit !== undefined && limit !== null && limit !== "") {
         query += " LIMIT ?";
