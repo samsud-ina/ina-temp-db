@@ -17,6 +17,7 @@ router.post('/api/user/update-profile', auth.verifyToken, user.updateProfile);
 
 const dashboard = require('../controllers/dashboardController.js');
 router.get('/api/dashboard', auth.verifyToken, dashboard.getDashboardSummary);
+router.get('/api/dashboard/dhuwit-summary', auth.verifyToken, dashboard.getDhuwitSummary);
 
 const item = require('../controllers/itemController.js');
 router.get('/api/item/all', auth.verifyToken, item.getItems);

@@ -193,3 +193,70 @@ exports.getDashboardSummary = async (request, response) => {
         return baseError.handleError(error, response);
     }
 };
+
+exports.getDhuwitSummary = async (request, response) => {
+    try {
+        const id_user = request.id_user;
+
+        const today = new Date();
+
+        const month = Number(request.body.month) || (today.getMonth() + 1);
+        const year = Number(request.body.year) || today.getFullYear();
+
+        if (month < 1 || month > 12) {
+            return response.json({
+                code: statusCode.failed,
+                message: "Bulan tidak valid"
+            });
+        }
+
+        const startMonth = new Date(year, month - 1, 1);
+        const nextMonth = new Date(year, month, 1);
+
+        const startMonthStr = `${startMonth.toISOString().slice(0, 10)} 00:00:00`;
+        const nextMonthStr = `${nextMonth.toISOString().slice(0, 10)} 00:00:00`;
+
+        const query = `
+            SELECT
+                status,
+                COUNT(*) AS total_count,
+                COALESCE(SUM(nominal), 0) AS total_nominal
+            FROM tr_dhuwit
+            WHERE
+                id_user = ?
+                AND date_dhuwit >= ?
+                AND date_dhuwit < ?
+            GROUP BY status
+            ORDER BY status ASC
+        `;
+
+        const [[rows]] = await db.pool.promise().query(query, [
+            id_user,
+            startMonthStr,
+            nextMonthStr
+        ]);
+
+        const income = rows.find(item => Number(item.status) === 1);
+        const spend = rows.find(item => Number(item.status) === 2);
+
+        const totalIncome = Number(income?.total_nominal || 0);
+        const totalSpend = Number(spend?.total_nominal || 0);
+
+        return response.json({
+            code: statusCode.success,
+            message: "Summary dhuwit ditemukan",
+            data: {
+                month,
+                year,
+                total_income: totalIncome,
+                total_spend: totalSpend,
+                balance: totalIncome - totalSpend,
+                income_count: Number(income?.total_count || 0),
+                spend_count: Number(spend?.total_count || 0)
+            }
+        });
+
+    } catch (error) {
+        return baseError.handleError(error, response);
+    }
+};
