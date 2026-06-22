@@ -126,8 +126,16 @@ exports.getDashboardSummary = async (request, response) => {
             db.pool.promise().query(dhuwitQuery, [
                 startDay,
                 endDay,
+
                 startMonthStr,
                 nextMonthStr,
+
+                startDay,
+                endDay,
+
+                startMonthStr,
+                nextMonthStr,
+
                 id_user
             ])
         ]);
