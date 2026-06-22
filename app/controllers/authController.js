@@ -88,7 +88,9 @@ exports.checkAccount = (request, response) => {
     `;
 
     db.pool.query(query, [email], (error, results) => {
-        baseError.handleError(error, response);
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (results.length === 0) {
             return response.json({
@@ -117,7 +119,9 @@ exports.resetPassword = (request, response) => {
     `;
 
     db.pool.query(query, [hashedPassword, email], (error, result) => {
-        baseError.handleError(error, response);
+        if (error) {
+            return baseError.handleError(error, response);
+        }
 
         if (result.affectedRows === 0) {
             return response.json({
