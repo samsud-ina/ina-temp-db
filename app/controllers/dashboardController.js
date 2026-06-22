@@ -90,7 +90,27 @@ exports.getDashboardSummary = async (request, response) => {
                         THEN nominal
                         ELSE 0
                     END
-                ) AS total_spend_month
+                ) AS total_spend_month,
+
+                SUM(
+                    CASE
+                        WHEN status = 1
+                        AND date_dhuwit >= ?
+                        AND date_dhuwit < ?
+                        THEN nominal
+                        ELSE 0
+                    END
+                ) AS total_income_day,
+
+                SUM(
+                    CASE
+                        WHEN status = 1
+                        AND date_dhuwit >= ?
+                        AND date_dhuwit < ?
+                        THEN nominal
+                        ELSE 0
+                    END
+                ) AS total_income_month
 
             FROM tr_dhuwit
             WHERE id_user = ?
