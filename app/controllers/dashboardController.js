@@ -230,7 +230,7 @@ exports.getDhuwitSummary = async (request, response) => {
             ORDER BY status ASC
         `;
 
-        const [[rows]] = await db.pool.promise().query(query, [
+        const [rows] = await db.pool.promise().query(query, [
             id_user,
             startMonthStr,
             nextMonthStr
