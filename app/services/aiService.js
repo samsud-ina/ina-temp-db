@@ -35,12 +35,12 @@ DATE RULES:
 If no date is mentioned:
 - Use the current date above.
 
-STATUS RULES:
-- 1 = income
-- 2 = expense
-
-If status cannot be determined:
-- Default to 2 (expense).
+STATUS DETECTION RULES:
+- If the text indicates money received or earned -> status = 1.
+- If the text indicates money spent or paid -> status = 2.
+- Examples of income words: gaji, bonus, jual, menjual, pendapatan, pemasukan, menerima.
+- Examples of expense words: beli, bayar, tagihan, cicilan, top up.
+- Only if it is still ambiguous, default to 2.
 
 NOMINAL RULES:
 - Must be an integer.
