@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require("../middleware/auth.js");
 
-const version = require('../controllers/versionController.js');
+const version = require('../controllers/appVersionController.js');
 router.post('/api/version/apps', version.getVersion);
 
 const authController = require('../controllers/authController.js');
