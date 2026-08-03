@@ -7,7 +7,7 @@ function toBoolean(value) {
     return value === true || String(value).toUpperCase() === "TRUE" || Number(value) === 1;
 }
 
-exports.getVersion = (request, response) => {
+exports.checkVersion = (request, response) => {
     const platformInput = request.body?.platform || request.query?.platform || "";
     const versionCodeInput = request.body?.versionCode || request.query?.versionCode || "0";
 
