@@ -1,8 +1,8 @@
-const { v2: cloudinary } = require('cloudinary');
-
 const db = require('../config/dbConfig.js');
 const statusCode = require('../config/statusCode.js');
 const baseError = require('../middleware/error.js');
+
+let cloudinaryClient;
 
 function query(sql, params = []) {
     return new Promise((resolve, reject) => {
@@ -28,10 +28,49 @@ function toBoolean(value, defaultValue = true) {
     return normalized === 'true' || normalized === '1' || normalized === 'yes';
 }
 
+function normalizeCloudinaryUrl(raw) {
+    if (!raw) return '';
+
+    let normalized = String(raw).trim();
+    normalized = normalized.replace(/^['"]|['"]$/g, '');
+    normalized = normalized.replace(/^CLOUDINARY_URL=/i, '');
+
+    if (!normalized.startsWith('cloudinary://')) {
+        return '';
+    }
+
+    return normalized;
+}
+
+function getCloudinaryClient() {
+    if (cloudinaryClient) {
+        return cloudinaryClient;
+    }
+
+    const normalizedUrl = normalizeCloudinaryUrl(process.env.CLOUDINARY_URL);
+    if (normalizedUrl) {
+        process.env.CLOUDINARY_URL = normalizedUrl;
+    } else {
+        delete process.env.CLOUDINARY_URL;
+    }
+
+    try {
+        cloudinaryClient = require('cloudinary').v2;
+        return cloudinaryClient;
+    } catch (error) {
+        return null;
+    }
+}
+
 function configureCloudinary() {
+    const cloudinary = getCloudinaryClient();
+    if (!cloudinary) {
+        return null;
+    }
+
     if (process.env.CLOUDINARY_URL) {
         cloudinary.config({ secure: true });
-        return true;
+        return cloudinary;
     }
 
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
@@ -39,7 +78,7 @@ function configureCloudinary() {
     const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
     if (!cloudName || !apiKey || !apiSecret) {
-        return false;
+        return null;
     }
 
     cloudinary.config({
@@ -48,11 +87,12 @@ function configureCloudinary() {
         api_secret: apiSecret,
         secure: true
     });
-    return true;
+    return cloudinary;
 }
 
 async function uploadImageToCloudinary(fileBuffer, fileName, mimeType) {
-    if (!configureCloudinary()) {
+    const cloudinary = configureCloudinary();
+    if (!cloudinary) {
         return {
             imageUrl: '',
             fileId: ''
@@ -89,7 +129,10 @@ async function uploadImageToCloudinary(fileBuffer, fileName, mimeType) {
 }
 
 async function deleteCloudinaryFile(fileId) {
-    if (!fileId || !configureCloudinary()) return;
+    if (!fileId) return;
+
+    const cloudinary = configureCloudinary();
+    if (!cloudinary) return;
 
     try {
         await cloudinary.uploader.destroy(fileId, {
