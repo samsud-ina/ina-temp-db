@@ -13,6 +13,45 @@ function query(sql, params = []) {
   });
 }
 
+function queryWithConnection(connection, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(results);
+    });
+  });
+}
+
+function beginTransaction(connection) {
+  return new Promise((resolve, reject) => {
+    connection.beginTransaction((error) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve();
+    });
+  });
+}
+
+function commitTransaction(connection) {
+  return new Promise((resolve, reject) => {
+    connection.commit((error) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve();
+    });
+  });
+}
+
+function rollbackTransaction(connection) {
+  return new Promise((resolve) => {
+    connection.rollback(() => resolve());
+  });
+}
+
 function toBoolean(value, defaultValue = true) {
   if (value === undefined || value === null || value === '') {
     return defaultValue;
@@ -123,63 +162,76 @@ exports.saveTaxServices = async (request, response) => {
       }
     }
 
-    const existingRows = await query(
-      'SELECT id, type, created_at FROM tax_services WHERE user_id = ?',
-      [userId]
-    );
-
-    const existingByType = new Map(
-      existingRows.map((row) => [String(row.type), row])
-    );
-
+    const connection = db.pool;
     const result = [];
 
-    for (const item of normalizedItems) {
-      const existing = existingByType.get(item.type);
+    await beginTransaction(connection);
 
-      if (existing) {
-        await query(
-          `
-          UPDATE tax_services
-          SET
-            name = ?,
-            percentage = ?,
-            is_active = ?,
-            updated_at = NOW()
-          WHERE id = ? AND user_id = ?
-          `,
-          [item.name, item.percentage, item.isActive, existing.id, userId]
-        );
+    try {
+      const existingRows = await queryWithConnection(
+        connection,
+        'SELECT id, type, created_at FROM tax_services WHERE user_id = ?',
+        [userId]
+      );
 
-        result.push({
-          id: existing.id,
-          userId,
-          type: item.type,
-          name: item.name,
-          percentage: item.percentage,
-          isActive: item.isActive,
-          action: 'updated'
-        });
-      } else {
-        const insertResult = await query(
-          `
-          INSERT INTO tax_services
-          (user_id, type, name, percentage, is_active)
-          VALUES (?, ?, ?, ?, ?)
-          `,
-          [userId, item.type, item.name, item.percentage, item.isActive]
-        );
+      const existingByType = new Map(
+        existingRows.map((row) => [String(row.type), row])
+      );
 
-        result.push({
-          id: insertResult.insertId,
-          userId,
-          type: item.type,
-          name: item.name,
-          percentage: item.percentage,
-          isActive: item.isActive,
-          action: 'created'
-        });
+      for (const item of normalizedItems) {
+        const existing = existingByType.get(item.type);
+
+        if (existing) {
+          await queryWithConnection(
+            connection,
+            `
+            UPDATE tax_services
+            SET
+              name = ?,
+              percentage = ?,
+              is_active = ?,
+              updated_at = NOW()
+            WHERE id = ? AND user_id = ?
+            `,
+            [item.name, item.percentage, item.isActive, existing.id, userId]
+          );
+
+          result.push({
+            id: existing.id,
+            userId,
+            type: item.type,
+            name: item.name,
+            percentage: item.percentage,
+            isActive: item.isActive,
+            action: 'updated'
+          });
+        } else {
+          const insertResult = await queryWithConnection(
+            connection,
+            `
+            INSERT INTO tax_services
+            (user_id, type, name, percentage, is_active)
+            VALUES (?, ?, ?, ?, ?)
+            `,
+            [userId, item.type, item.name, item.percentage, item.isActive]
+          );
+
+          result.push({
+            id: insertResult.insertId,
+            userId,
+            type: item.type,
+            name: item.name,
+            percentage: item.percentage,
+            isActive: item.isActive,
+            action: 'created'
+          });
+        }
       }
+
+      await commitTransaction(connection);
+    } catch (error) {
+      await rollbackTransaction(connection);
+      throw error;
     }
 
     return response.json({

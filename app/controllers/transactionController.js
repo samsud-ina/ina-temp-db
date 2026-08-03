@@ -13,6 +13,45 @@ function query(sql, params = []) {
   });
 }
 
+function queryWithConnection(connection, sql, params = []) {
+  return new Promise((resolve, reject) => {
+    connection.query(sql, params, (error, results) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve(results);
+    });
+  });
+}
+
+function beginTransaction(connection) {
+  return new Promise((resolve, reject) => {
+    connection.beginTransaction((error) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve();
+    });
+  });
+}
+
+function commitTransaction(connection) {
+  return new Promise((resolve, reject) => {
+    connection.commit((error) => {
+      if (error) {
+        return reject(error);
+      }
+      return resolve();
+    });
+  });
+}
+
+function rollbackTransaction(connection) {
+  return new Promise((resolve) => {
+    connection.rollback(() => resolve());
+  });
+}
+
 function toInt(value, fallback = 0) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -31,18 +70,6 @@ exports.addTransaction = async (request, response) => {
       return response.json({
         code: statusCode.bad_request,
         message: 'clientReff and userId are required'
-      });
-    }
-
-    const duplicated = await query(
-      'SELECT id FROM transactions WHERE client_reff = ? AND user_id = ? LIMIT 1',
-      [clientReff, userId]
-    );
-
-    if (duplicated.length) {
-      return response.json({
-        code: statusCode.already_exists,
-        message: 'Transaction already exists'
       });
     }
 
@@ -88,44 +115,72 @@ exports.addTransaction = async (request, response) => {
     const servicePercentage = Number(body.servicePercentage || 0);
     const grandTotal = toInt(body.grandTotal, totalAmount);
 
-    const insertTransaction = await query(
-      `
-      INSERT INTO transactions
-      (client_reff, nmid, merchant_name, user_id, customer_name, total_amount, ppn_percentage, service_percentage, grand_total, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        clientReff,
-        nmid,
-        merchantName,
-        userId,
-        customerName,
-        totalAmount,
-        ppnPercentage,
-        servicePercentage,
-        grandTotal,
-        'PENDING'
-      ]
-    );
+    const connection = db.pool;
+    let transactionId = 0;
 
-    const transactionId = insertTransaction.insertId;
+    await beginTransaction(connection);
 
-    for (const item of normalizedItems) {
-      await query(
+    try {
+      const duplicated = await queryWithConnection(
+        connection,
+        'SELECT id FROM transactions WHERE client_reff = ? AND user_id = ? LIMIT 1',
+        [clientReff, userId]
+      );
+
+      if (duplicated.length) {
+        await rollbackTransaction(connection);
+        return response.json({
+          code: statusCode.already_exists,
+          message: 'Transaction already exists'
+        });
+      }
+
+      const insertTransaction = await queryWithConnection(
+        connection,
         `
-        INSERT INTO transaction_items
-        (transaction_id, product_id, product_name, price, qty, subtotal)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO transactions
+        (client_reff, nmid, merchant_name, user_id, customer_name, total_amount, ppn_percentage, service_percentage, grand_total, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
-          transactionId,
-          item.productId,
-          item.productName,
-          item.price,
-          item.qty,
-          item.subtotal
+          clientReff,
+          nmid,
+          merchantName,
+          userId,
+          customerName,
+          totalAmount,
+          ppnPercentage,
+          servicePercentage,
+          grandTotal,
+          'PENDING'
         ]
       );
+
+      transactionId = insertTransaction.insertId;
+
+      for (const item of normalizedItems) {
+        await queryWithConnection(
+          connection,
+          `
+          INSERT INTO transaction_items
+          (transaction_id, product_id, product_name, price, qty, subtotal)
+          VALUES (?, ?, ?, ?, ?, ?)
+          `,
+          [
+            transactionId,
+            item.productId,
+            item.productName,
+            item.price,
+            item.qty,
+            item.subtotal
+          ]
+        );
+      }
+
+      await commitTransaction(connection);
+    } catch (error) {
+      await rollbackTransaction(connection);
+      throw error;
     }
 
     return response.json({
