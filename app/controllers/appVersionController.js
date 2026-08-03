@@ -8,8 +8,8 @@ function toBoolean(value) {
 }
 
 exports.checkVersion = (request, response) => {
-    const platformInput = request.body?.platform || request.query?.platform || "";
-    const versionCodeInput = request.body?.versionCode || request.query?.versionCode || "0";
+    const platformInput = request.query?.platform || "";
+    const versionCodeInput = request.query?.versionCode || "0";
 
     const platform = String(platformInput).trim().toLowerCase();
     const currentVersionCode = Number.parseInt(versionCodeInput, 10) || 0;
