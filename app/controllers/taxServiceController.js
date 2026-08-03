@@ -115,10 +115,10 @@ exports.saveTaxServices = async (request, response) => {
         });
       }
 
-      if (!Number.isFinite(item.percentage) || item.percentage < 1 || item.percentage > 100) {
+      if (!Number.isFinite(item.percentage) || item.percentage < 0 || item.percentage > 100) {
         return response.json({
           code: statusCode.bad_request,
-          message: `Percentage must be between 1 and 100 for ${item.type}`
+          message: `Percentage must be between 0 and 100 for ${item.type}`
         });
       }
     }
