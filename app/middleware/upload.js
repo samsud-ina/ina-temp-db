@@ -1,22 +1,21 @@
-// const e = require("express");
-// const multer = require("multer");
+const multer = require('multer');
 
-// const imageFilter = (req, file, cb) => {
-//   cb(null, true);
-// };
+const storage = multer.memoryStorage();
 
-// var storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     if (file.mimetype.startsWith("image")) {
-//       cb(null, "./resource/image");
-//     }else{
-//       cb(null, "./resource/file");
-//     }
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, file.originalname);
-//   },
-// });
+function imageFilter(req, file, cb) {
+	if (!file.mimetype || !file.mimetype.startsWith('image/')) {
+		return cb(new Error('Only image files are allowed'));
+	}
 
-// var uploadFile = multer({ storage: storage, fileFilter: imageFilter });
-// module.exports = uploadFile;
+	return cb(null, true);
+}
+
+const uploadFile = multer({
+	storage,
+	fileFilter: imageFilter,
+	limits: {
+		fileSize: 5 * 1024 * 1024
+	}
+});
+
+module.exports = uploadFile;
