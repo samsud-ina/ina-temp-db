@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const auth = require("../middleware/auth.js");
 
 const version = require('../controllers/appVersionController.js');
 router.get('/api/version/check', version.checkVersion);
