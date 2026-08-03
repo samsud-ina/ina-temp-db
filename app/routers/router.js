@@ -16,6 +16,11 @@ const taxService = require('../controllers/taxServiceController.js');
 router.get('/tax-service', taxService.getTaxService);
 router.post('/tax-service/save', taxService.saveTaxServices);
 
+const transaction = require('../controllers/transactionController.js');
+router.get('/transaction', transaction.getTransaction);
+router.post('/transaction/add', transaction.addTransaction);
+router.post('/transaction/status/update', transaction.updateTransactionStatus);
+
 // const uploadController = require("../controllers/uploadController.js");
 // router.post("/upload", auth.verifyToken, upload.single("file"), uploadController.upload);
 
