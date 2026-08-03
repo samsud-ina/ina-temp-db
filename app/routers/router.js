@@ -21,6 +21,10 @@ router.get('/transaction', transaction.getTransaction);
 router.post('/transaction/add', transaction.addTransaction);
 router.post('/transaction/status/update', transaction.updateTransactionStatus);
 
+const deleteAccount = require('../controllers/deleteAccountController.js');
+router.get('/delete-account', deleteAccount.getDeleteAccount);
+router.post('/delete-account/add', deleteAccount.addDeleteAccount);
+
 // const uploadController = require("../controllers/uploadController.js");
 // router.post("/upload", auth.verifyToken, upload.single("file"), uploadController.upload);
 
