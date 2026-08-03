@@ -3,7 +3,7 @@ const router = express.Router();
 const auth = require("../middleware/auth.js");
 
 const version = require('../controllers/appVersionController.js');
-router.get('/api/version/apps', version.checkVersion);
+router.get('/api/version/check', version.checkVersion);
 
 // const uploadController = require("../controllers/uploadController.js");
 // router.post("/api/upload", auth.verifyToken, upload.single("file"), uploadController.upload);
